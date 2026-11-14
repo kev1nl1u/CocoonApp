@@ -20,7 +20,7 @@
 
     <string name="perm_a11y_title">Turn on app detection</string>
     <string name="perm_a11y_body">Accessibility → Cocoon. Nothing leaves your phone.</string>
-    <string name="perm_a11y_restricted">Greyed out? App info → ⋮ → Allow restricted settings</string>
+    <string name="perm_a11y_restricted">Blocked? Open App info → ⋮ → Allow restricted settings</string>
     <string name="perm_notif_title">Turn on notifications</string>
     <string name="perm_notif_body">For the heads-up before time runs out</string>
     <string name="enable">Turn on</string>

@@ -8,11 +8,13 @@ import android.app.NotificationManager
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +57,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -121,6 +124,7 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
                     body = stringResource(R.string.perm_a11y_body),
                     // Sideloaded apps hit "restricted settings" from Android 13 on.
                     hint = if (Build.VERSION.SDK_INT >= 33) stringResource(R.string.perm_a11y_restricted) else null,
+                    onHintClick = { openAppInfo(context) },
                     onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                 )
             }
@@ -154,7 +158,13 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
 }
 
 @Composable
-private fun PermissionCard(title: String, body: String, hint: String? = null, onClick: () -> Unit) {
+private fun PermissionCard(
+    title: String,
+    body: String,
+    hint: String? = null,
+    onHintClick: () -> Unit = {},
+    onClick: () -> Unit,
+) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -170,8 +180,10 @@ private fun PermissionCard(title: String, body: String, hint: String? = null, on
                     Text(
                         hint,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
-                        modifier = Modifier.padding(top = 4.dp),
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier
+                            .clickable(onClick = onHintClick)
+                            .padding(vertical = 6.dp),
                     )
                 }
             }
@@ -298,6 +310,13 @@ private fun isGuardEnabled(context: Context): Boolean {
 
 private fun notificationsEnabled(context: Context): Boolean =
     context.getSystemService(NotificationManager::class.java).areNotificationsEnabled()
+
+/** The system's "allow restricted settings" switch for sideloaded apps lives on this page. */
+private fun openAppInfo(context: Context) {
+    context.startActivity(
+        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
+    )
+}
 
 private fun openNotificationSettings(context: Context) {
     context.startActivity(

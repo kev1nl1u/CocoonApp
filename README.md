@@ -15,7 +15,7 @@ Nessun account, nessuna rete: tutto resta sul telefono.
 
 1. Scarica `cocoon.apk` dalla release [latest](../../releases/latest).
 2. Apri Cocoon → **Attiva il rilevamento app** → Accessibilità → Cocoon.
-   Da Android 13, se la voce non è selezionabile: Info app di Cocoon → ⋮ → *Consenti impostazioni con restrizioni*.
+   Da Android 13, se la voce non è selezionabile: Info app di Cocoon → ⋮ → *Consenti impostazioni con limitazioni*.
 3. Consenti le notifiche per ricevere l'avviso di fine sessione.
 
 ## Build
