@@ -50,6 +50,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -72,6 +73,7 @@ import com.cocoonapp.data.AppState
 import com.cocoonapp.data.Mode
 import com.cocoonapp.data.Rule
 import com.cocoonapp.data.Store
+import kotlinx.coroutines.delay
 import java.time.ZoneId
 
 @Composable
@@ -91,6 +93,16 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
         detectionOn = isGuardEnabled(context)
         notificationsOn = notificationsEnabled(context)
         onPauseOrDispose { }
+    }
+    val running by GuardService.running.collectAsStateWithLifecycle()
+    // Switched on yet not connected: seen after an update or once the system has killed the app.
+    // A healthy service connects right after the process starts, hence the wait.
+    val stalled by produceState(false, detectionOn, running) {
+        value = false
+        if (detectionOn && !running) {
+            delay(STALL_DELAY_MS)
+            value = true
+        }
     }
     val askNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         notificationsOn = granted
@@ -133,6 +145,14 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
                     onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
                 )
             }
+            if (stalled) item(key = "stalled") {
+                PermissionCard(
+                    title = stringResource(R.string.stalled_title),
+                    body = stringResource(R.string.stalled_body),
+                    action = stringResource(R.string.open),
+                    onClick = { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) },
+                )
+            }
             if (!notificationsOn) item(key = "notifications") {
                 PermissionCard(
                     title = stringResource(R.string.perm_notif_title),
@@ -171,6 +191,7 @@ private fun PermissionCard(
     body: String,
     hint: String? = null,
     onHintClick: () -> Unit = {},
+    action: String = stringResource(R.string.enable),
     onClick: () -> Unit,
 ) {
     Card(
@@ -196,7 +217,7 @@ private fun PermissionCard(
                 }
             }
             Spacer(Modifier.width(12.dp))
-            Button(onClick = onClick) { Text(stringResource(R.string.enable)) }
+            Button(onClick = onClick) { Text(action) }
         }
     }
 }
@@ -336,6 +357,8 @@ private fun RuleCard(rule: Rule, usedMs: Long, gate: Gate, now: Long, locked: Bo
         }
     }
 }
+
+private const val STALL_DELAY_MS = 3000L
 
 private fun isGuardEnabled(context: Context): Boolean {
     val enabled = Settings.Secure.getString(context.contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)

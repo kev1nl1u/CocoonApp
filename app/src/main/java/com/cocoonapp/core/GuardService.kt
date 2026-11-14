@@ -14,6 +14,8 @@ import android.view.inputmethod.InputMethodManager
 import androidx.core.content.ContextCompat
 import com.cocoonapp.data.Store
 import com.cocoonapp.ui.GateActivity
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import java.time.ZoneId
 
 /**
@@ -30,6 +32,9 @@ class GuardService : AccessibilityService() {
     private var ticking = false
     private var gatePkg: String? = null
     private var gateAt = 0L
+
+    /** What the "time left" notification shows: package and whole minutes; null = nothing. */
+    private var shown: Pair<String, Int>? = null
 
     /** Packages whose windows float over the real foreground app. */
     private var overlays = emptySet<String>()
@@ -57,6 +62,7 @@ class GuardService : AccessibilityService() {
         }
         ContextCompat.registerReceiver(this, screenReceiver, filter, ContextCompat.RECEIVER_NOT_EXPORTED)
         instance = this
+        _running.value = true
         resync()
     }
 
@@ -70,6 +76,7 @@ class GuardService : AccessibilityService() {
 
     override fun onUnbind(intent: Intent?): Boolean {
         instance = null
+        _running.value = false
         handler.removeCallbacksAndMessages(null)
         switchTo(null)
         runCatching { unregisterReceiver(screenReceiver) }
@@ -97,6 +104,7 @@ class GuardService : AccessibilityService() {
             guard(pkg!!, opening = true)
             handler.postDelayed(ticker, TICK_MS)
         }
+        syncStatus()
     }
 
     private fun tick(leaving: Boolean = false) {
@@ -115,7 +123,27 @@ class GuardService : AccessibilityService() {
             TickEvent.ENDED -> Notifier.cancel(this, pkg)
             null -> Unit
         }
-        if (!leaving) guard(pkg)
+        if (!leaving) {
+            guard(pkg)
+            syncStatus()
+        }
+    }
+
+    /** Keeps the "time left" notification in step with the session of the foreground app. */
+    private fun syncStatus() {
+        val pkg = current
+        val rule = pkg?.let { Store.rule(it) }
+        val left = if (pkg == null || rule == null) {
+            null
+        } else {
+            val gate = Logic.status(rule, Store.state(pkg), System.currentTimeMillis(), ZoneId.systemDefault())
+            (gate as? Gate.Running)?.leftMs
+        }
+        // Reposted only when the minute changes.
+        val next = if (pkg != null && left != null) pkg to Notifier.minutes(left) else null
+        if (next == shown) return
+        shown = next
+        if (pkg != null && left != null) Notifier.status(this, pkg, left) else Notifier.clearStatus(this)
     }
 
     /** Shows the gate if [pkg] may not be used right now. [opening] = the app has just come to the foreground. */
@@ -149,6 +177,11 @@ class GuardService : AccessibilityService() {
         private const val RESYNC_DELAY_MS = 600L
 
         private var instance: GuardService? = null
+
+        private val _running = MutableStateFlow(false)
+
+        /** The system has the service connected, which "switched on in settings" does not guarantee. */
+        val running: StateFlow<Boolean> = _running
 
         /**
          * Called when the gate goes away. The app underneath normally announces itself

@@ -7,7 +7,7 @@ App Android per limitare le app che distraggono.
 - **Durate precise**: ogni durata si inserisce in ore e minuti con un tocco sul valore.
 - **Pausa** obbligatoria a fine sessione.
 - **Fascia oraria** opzionale: fuori fascia l'app è libera. Scegli se il tempo massimo conta solo in fascia o tutto il giorno.
-- **Avviso** con notifica N minuti prima della fine.
+- **Tempo rimasto** in una notifica durante la sessione, più **avviso** N minuti prima della fine.
 - **Modalità**: *Standard* (sblocco di 5 min dopo un'attesa che raddoppia a ogni uso) o *Max Focus* (nessuno sblocco, regole non modificabili durante il blocco).
 
 Nessun account, nessuna rete: tutto resta sul telefono.

@@ -3,6 +3,7 @@
     <string name="app_name" translatable="false">Cocoon</string>
     <string name="a11y_desc">Detects the app on screen to apply your limits. Nothing leaves your phone.</string>
     <string name="channel_warn">Session warnings</string>
+    <string name="channel_status">Session in progress</string>
     <string name="notif_left">%1$d min left</string>
 
     <string name="fmt_min">%1$d min</string>
@@ -22,8 +23,10 @@
     <string name="perm_a11y_body">Accessibility → Cocoon. Nothing leaves your phone.</string>
     <string name="perm_a11y_body_hyperos">Accessibility → Downloaded apps → Cocoon. Nothing leaves your phone.</string>
     <string name="perm_a11y_restricted">Blocked? Open App info → ⋮ → Allow restricted settings</string>
+    <string name="stalled_title">Detection has stopped</string>
+    <string name="stalled_body">Accessibility → turn Cocoon off and on again</string>
     <string name="perm_notif_title">Turn on notifications</string>
-    <string name="perm_notif_body">For the heads-up before time runs out</string>
+    <string name="perm_notif_body">For the time left and the heads-up before it runs out</string>
     <string name="enable">Turn on</string>
 
     <string name="hyperos_title">HyperOS setup</string>
