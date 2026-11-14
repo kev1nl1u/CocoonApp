@@ -5,6 +5,7 @@ package com.cocoonapp.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -19,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,10 +34,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -148,22 +145,28 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
             }
 
             val rangeOnly = rule.scheduleEnabled && !rule.countAllDay
-            Section(
+            DurationSection(
                 title = stringResource(R.string.max_time),
                 value = stringResource(
                     if (rangeOnly) R.string.per_range else R.string.per_day,
                     minutesText(rule.maxMinutes),
                 ),
-            ) {
-                StepSlider(MAX_VALUES, rule.maxMinutes, { rule = rule.copy(maxMinutes = it) }, enabled = editable)
-            }
+                minutes = rule.maxMinutes,
+                presets = MAX_VALUES,
+                min = 1,
+                enabled = editable,
+                onChange = { rule = rule.copy(maxMinutes = it) },
+            )
 
-            Section(
+            DurationSection(
                 title = stringResource(R.string.cooldown),
                 value = if (rule.cooldownMinutes == 0) stringResource(R.string.none) else minutesText(rule.cooldownMinutes),
-            ) {
-                StepSlider(COOLDOWN_VALUES, rule.cooldownMinutes, { rule = rule.copy(cooldownMinutes = it) }, enabled = editable)
-            }
+                minutes = rule.cooldownMinutes,
+                presets = COOLDOWN_VALUES,
+                min = 0,
+                enabled = editable,
+                onChange = { rule = rule.copy(cooldownMinutes = it) },
+            )
 
             Section(
                 title = stringResource(R.string.schedule),
@@ -205,26 +208,66 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
                 }
             }
 
-            Section(
+            DurationSection(
                 title = stringResource(R.string.warn),
-                value = if (rule.warnEnabled) minutesText(rule.warnMinutes) else null,
+                value = minutesText(rule.warnMinutes),
+                minutes = rule.warnMinutes,
+                presets = WARN_VALUES,
+                min = 1,
+                enabled = editable,
+                onChange = { rule = rule.copy(warnMinutes = it) },
                 checked = rule.warnEnabled,
                 onCheckedChange = { rule = rule.copy(warnEnabled = it) },
-                enabled = editable,
-            ) {
-                if (rule.warnEnabled) {
-                    StepSlider(WARN_VALUES, rule.warnMinutes, { rule = rule.copy(warnMinutes = it) }, enabled = editable)
-                }
-            }
+            )
         }
     }
 }
 
-/** Card with a title, an optional current value and an optional on/off switch. */
+/** Duration setting: the slider snaps to [presets], tapping the value types an exact one. */
+@Composable
+private fun DurationSection(
+    title: String,
+    value: String,
+    minutes: Int,
+    presets: List<Int>,
+    min: Int,
+    enabled: Boolean,
+    onChange: (Int) -> Unit,
+    checked: Boolean? = null,
+    onCheckedChange: (Boolean) -> Unit = {},
+) {
+    var typing by remember { mutableStateOf(false) }
+    val on = checked != false
+    Section(
+        title = title,
+        value = if (on) value else null,
+        onValueClick = { typing = true },
+        checked = checked,
+        onCheckedChange = onCheckedChange,
+        enabled = enabled,
+    ) {
+        if (on) StepSlider(presets, minutes, onChange, enabled = enabled)
+    }
+    if (typing) {
+        TimeDialog(
+            minutes = minutes,
+            onPick = {
+                onChange(it)
+                typing = false
+            },
+            onDismiss = { typing = false },
+            title = title,
+            range = min..MAX_TIME_INPUT,
+        )
+    }
+}
+
+/** Card with a title, an optional current value (a button when [onValueClick] is set) and an optional switch. */
 @Composable
 private fun Section(
     title: String,
     value: String?,
+    onValueClick: (() -> Unit)? = null,
     checked: Boolean? = null,
     onCheckedChange: (Boolean) -> Unit = {},
     enabled: Boolean = true,
@@ -234,7 +277,15 @@ private fun Section(
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
             Row(Modifier.heightIn(min = 48.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(title, style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
-                if (value != null) {
+                if (value != null && onValueClick != null) {
+                    FilledTonalButton(
+                        onClick = onValueClick,
+                        enabled = enabled,
+                        contentPadding = PaddingValues(horizontal = 14.dp),
+                    ) {
+                        Text(value, style = MaterialTheme.typography.titleMedium)
+                    }
+                } else if (value != null) {
                     Text(value, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 }
                 if (checked != null) {
@@ -254,21 +305,13 @@ private fun TimeButton(minute: Int, enabled: Boolean, onPick: (Int) -> Unit) {
         Text(clock(minute), style = MaterialTheme.typography.titleMedium)
     }
     if (open) {
-        val state = rememberTimePickerState(initialHour = minute / 60, initialMinute = minute % 60, is24Hour = true)
-        AlertDialog(
-            onDismissRequest = { open = false },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        onPick(state.hour * 60 + state.minute)
-                        open = false
-                    },
-                ) { Text(stringResource(R.string.ok)) }
+        TimeDialog(
+            minutes = minute,
+            onPick = {
+                onPick(it)
+                open = false
             },
-            dismissButton = {
-                TextButton(onClick = { open = false }) { Text(stringResource(R.string.cancel)) }
-            },
-            text = { TimeInput(state) },
+            onDismiss = { open = false },
         )
     }
 }

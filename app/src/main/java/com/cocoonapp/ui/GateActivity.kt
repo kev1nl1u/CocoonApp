@@ -174,12 +174,38 @@ private fun ColumnScope.PickContent(rule: Rule, budgetLeftMs: Long, onStart: (In
     val choices = remember(budgetLeftMs) { Logic.sessionChoices(budgetLeftMs) }
     var picked by remember { mutableIntStateOf(choices.lastOrNull { it <= DEFAULT_SESSION_MINUTES } ?: choices.first()) }
     val minutes = picked.coerceAtMost(choices.last())
+    var typing by remember { mutableStateOf(false) }
 
     Text(stringResource(R.string.gate_question), style = MaterialTheme.typography.headlineSmall)
     Spacer(Modifier.height(12.dp))
-    Text(minutesText(minutes), style = MaterialTheme.typography.displayLarge, color = MaterialTheme.colorScheme.primary)
+    // The slider offers round lengths; tapping the value types an exact one.
+    Surface(
+        onClick = { typing = true },
+        enabled = choices.last() > 1,
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+    ) {
+        Text(
+            minutesText(minutes),
+            style = MaterialTheme.typography.displayLarge,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
+        )
+    }
     if (choices.size > 1) {
         StepSlider(choices, minutes, { picked = it }, Modifier.padding(top = 20.dp))
+    }
+    if (typing) {
+        TimeDialog(
+            minutes = minutes,
+            onPick = {
+                picked = it
+                typing = false
+            },
+            onDismiss = { typing = false },
+            title = stringResource(R.string.gate_question),
+            range = 1..choices.last(),
+        )
     }
     Spacer(Modifier.height(12.dp))
     Text(

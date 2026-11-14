@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.cocoonapp.ui
 
 import androidx.compose.foundation.Image
@@ -5,8 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimeInput
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
@@ -98,3 +106,37 @@ fun StepSlider(
         steps = (values.size - 2).coerceAtLeast(0),
     )
 }
+
+/** Types an exact hh:mm, a time of day or a duration. The result is brought into [range]. */
+@Composable
+fun TimeDialog(
+    minutes: Int,
+    onPick: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    title: String? = null,
+    range: IntRange = 0..MAX_TIME_INPUT,
+) {
+    val initial = minutes.coerceIn(0, MAX_TIME_INPUT)
+    val state = rememberTimePickerState(initialHour = initial / 60, initialMinute = initial % 60, is24Hour = true)
+    val titleContent: (@Composable () -> Unit)? = if (title != null) {
+        { Text(title) }
+    } else {
+        null
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(onClick = { onPick((state.hour * 60 + state.minute).coerceIn(range)) }) {
+                Text(stringResource(R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) }
+        },
+        title = titleContent,
+        text = { TimeInput(state) },
+    )
+}
+
+/** Largest value [TimeDialog] can express: 23:59. */
+const val MAX_TIME_INPUT = 23 * 60 + 59
