@@ -53,6 +53,8 @@
     <string name="max_time">Max time</string>
     <string name="per_day">%1$s a day</string>
     <string name="per_range">%1$s per time range</string>
+    <string name="session">Session</string>
+    <string name="session_ask">Ask every time</string>
     <string name="cooldown">Break after a session</string>
     <string name="none">None</string>
     <string name="schedule">Time range</string>

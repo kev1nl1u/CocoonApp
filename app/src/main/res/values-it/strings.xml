@@ -52,6 +52,8 @@
     <string name="max_time">Tempo massimo</string>
     <string name="per_day">%1$s al giorno</string>
     <string name="per_range">%1$s per fascia</string>
+    <string name="session">Sessione</string>
+    <string name="session_ask">Chiedi ogni volta</string>
     <string name="cooldown">Pausa dopo una sessione</string>
     <string name="none">Nessuna</string>
     <string name="schedule">Fascia oraria</string>

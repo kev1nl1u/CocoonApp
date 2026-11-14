@@ -56,6 +56,7 @@ import com.cocoonapp.data.Store
 import java.time.ZoneId
 
 private val MAX_VALUES = listOf(5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480)
+private val SESSION_VALUES = listOf(1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120)
 private val COOLDOWN_VALUES = listOf(0, 1, 2, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240)
 private val WARN_VALUES = listOf(1, 2, 3, 5, 10, 15)
 
@@ -159,6 +160,19 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
             )
 
             DurationSection(
+                title = stringResource(R.string.session),
+                value = minutesText(rule.sessionMinutes),
+                minutes = rule.sessionMinutes,
+                presets = SESSION_VALUES,
+                min = 1,
+                enabled = editable,
+                onChange = { rule = rule.copy(sessionMinutes = it) },
+                checked = rule.sessionFixed,
+                onCheckedChange = { rule = rule.copy(sessionFixed = it) },
+                offValue = stringResource(R.string.session_ask),
+            )
+
+            DurationSection(
                 title = stringResource(R.string.cooldown),
                 value = if (rule.cooldownMinutes == 0) stringResource(R.string.none) else minutesText(rule.cooldownMinutes),
                 minutes = rule.cooldownMinutes,
@@ -223,7 +237,10 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
     }
 }
 
-/** Duration setting: the slider snaps to [presets], tapping the value types an exact one. */
+/**
+ * Duration setting: the slider snaps to [presets], tapping the value types an exact one.
+ * With a switch, [offValue] is what shows while it is off.
+ */
 @Composable
 private fun DurationSection(
     title: String,
@@ -235,13 +252,15 @@ private fun DurationSection(
     onChange: (Int) -> Unit,
     checked: Boolean? = null,
     onCheckedChange: (Boolean) -> Unit = {},
+    offValue: String? = null,
 ) {
     var typing by remember { mutableStateOf(false) }
     val on = checked != false
+    val type = { typing = true }
     Section(
         title = title,
-        value = if (on) value else null,
-        onValueClick = { typing = true },
+        value = if (on) value else offValue,
+        onValueClick = if (on) type else null,
         checked = checked,
         onCheckedChange = onCheckedChange,
         enabled = enabled,

@@ -133,9 +133,16 @@ object Logic {
     fun bypassWaitSeconds(st: AppState): Int =
         (BYPASS_WAIT_BASE.toLong() shl st.bypassCount.coerceIn(0, 10)).coerceAtMost(BYPASS_WAIT_MAX.toLong()).toInt()
 
+    /** Longest session (minutes) the remaining budget allows. */
+    private fun maxSession(budgetLeftMs: Long): Int = ((budgetLeftMs + MINUTE - 1) / MINUTE).toInt().coerceAtLeast(1)
+
     /** Session lengths (minutes) offered for the remaining budget; the last one uses all of it. */
     fun sessionChoices(budgetLeftMs: Long): List<Int> {
-        val max = ((budgetLeftMs + MINUTE - 1) / MINUTE).toInt().coerceAtLeast(1)
+        val max = maxSession(budgetLeftMs)
         return SESSION_STEPS.filter { it < max } + max
     }
+
+    /** Length (minutes) of the session a rule with a fixed session gets, cut to the budget left; null = the user picks. */
+    fun fixedSession(rule: Rule, budgetLeftMs: Long): Int? =
+        if (rule.sessionFixed) rule.sessionMinutes.coerceIn(1, maxSession(budgetLeftMs)) else null
 }

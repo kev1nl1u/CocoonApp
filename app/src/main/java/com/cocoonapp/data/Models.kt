@@ -7,6 +7,9 @@ data class Rule(
     val pkg: String,
     val enabled: Boolean = true,
     val maxMinutes: Int = 60,
+    /** Sessions always last [sessionMinutes] instead of being chosen every time the app is opened. */
+    val sessionFixed: Boolean = false,
+    val sessionMinutes: Int = 10,
     val cooldownMinutes: Int = 30,
     val scheduleEnabled: Boolean = false,
     val startMinute: Int = 9 * 60,

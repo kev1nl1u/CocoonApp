@@ -179,4 +179,13 @@ class LogicTest {
         assertEquals(listOf(1, 2, 3, 5, 7), Logic.sessionChoices(7 * min - 20_000))
         assertEquals(listOf(1), Logic.sessionChoices(30_000))
     }
+
+    @Test
+    fun fixedSessionIsCutToTheBudgetLeft() {
+        assertNull(Logic.fixedSession(rule, 60 * min))
+        val fixed = rule.copy(sessionFixed = true, sessionMinutes = 10)
+        assertEquals(10, Logic.fixedSession(fixed, 60 * min))
+        assertEquals(4, Logic.fixedSession(fixed, 4 * min - 20_000))
+        assertEquals(1, Logic.fixedSession(fixed.copy(sessionMinutes = 0), 60 * min))
+    }
 }

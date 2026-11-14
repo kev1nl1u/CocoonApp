@@ -94,7 +94,7 @@ class GuardService : AccessibilityService() {
         handler.removeCallbacks(ticker)
         ticking = tracked
         if (tracked) {
-            guard(pkg!!)
+            guard(pkg!!, opening = true)
             handler.postDelayed(ticker, TICK_MS)
         }
     }
@@ -118,11 +118,21 @@ class GuardService : AccessibilityService() {
         if (!leaving) guard(pkg)
     }
 
-    /** Shows the gate if [pkg] may not be used right now. */
-    private fun guard(pkg: String) {
+    /** Shows the gate if [pkg] may not be used right now. [opening] = the app has just come to the foreground. */
+    private fun guard(pkg: String, opening: Boolean = false) {
         val rule = Store.rule(pkg) ?: return
-        val gate = Logic.status(rule, Store.state(pkg), System.currentTimeMillis(), ZoneId.systemDefault())
+        val now = System.currentTimeMillis()
+        val zone = ZoneId.systemDefault()
+        val gate = Logic.status(rule, Store.state(pkg), now, zone)
         if (gate is Gate.Free || gate is Gate.Running) return
+
+        // A fixed session starts by itself on opening. Anywhere else (a session that just ended
+        // without a break, a range that just began) the gate asks first.
+        val fixed = (gate as? Gate.Pick)?.let { Logic.fixedSession(rule, it.budgetLeftMs) }
+        if (opening && fixed != null) {
+            Store.update(pkg) { r, s -> Logic.startSession(r, s, fixed, bypass = false, now, zone) }
+            return
+        }
 
         val elapsed = SystemClock.elapsedRealtime()
         if (pkg == gatePkg && elapsed - gateAt < GATE_DEBOUNCE_MS) return

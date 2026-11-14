@@ -95,6 +95,8 @@ object Store {
         .put("pkg", pkg)
         .put("enabled", enabled)
         .put("max", maxMinutes)
+        .put("sessionFixed", sessionFixed)
+        .put("session", sessionMinutes)
         .put("cooldown", cooldownMinutes)
         .put("schedule", scheduleEnabled)
         .put("start", startMinute)
@@ -108,6 +110,8 @@ object Store {
         return d.copy(
             enabled = o.optBoolean("enabled", d.enabled),
             maxMinutes = o.optInt("max", d.maxMinutes),
+            sessionFixed = o.optBoolean("sessionFixed", d.sessionFixed),
+            sessionMinutes = o.optInt("session", d.sessionMinutes),
             cooldownMinutes = o.optInt("cooldown", d.cooldownMinutes),
             scheduleEnabled = o.optBoolean("schedule", d.scheduleEnabled),
             startMinute = o.optInt("start", d.startMinute),

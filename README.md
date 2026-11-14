@@ -3,7 +3,7 @@
 App Android per limitare le app che distraggono.
 
 - **Tempo massimo** per app, al giorno o per fascia oraria.
-- **Sessioni**: a ogni apertura scegli quanto usarla. Il tempo scorre solo con l'app in primo piano.
+- **Sessioni**: a ogni apertura scegli quanto usarla, oppure fissa una durata e la sessione parte da sola. Il tempo scorre solo con l'app in primo piano.
 - **Durate precise**: la barra propone valori tondi, un tocco sul valore apre l'inserimento di ore e minuti.
 - **Pausa** obbligatoria a fine sessione.
 - **Fascia oraria** opzionale: fuori fascia l'app è libera. Scegli se il tempo massimo conta solo in fascia o tutto il giorno.
