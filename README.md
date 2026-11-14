@@ -18,6 +18,14 @@ Nessun account, nessuna rete: tutto resta sul telefono.
    Da Android 13, se la voce non è selezionabile: Info app di Cocoon → ⋮ → *Consenti impostazioni con limitazioni*.
 3. Consenti le notifiche per ricevere l'avviso di fine sessione.
 
+### Xiaomi HyperOS
+
+Cocoon riconosce HyperOS e mostra questi passi in home. In Info app di Cocoon:
+
+1. *Avvio automatico* → attivo.
+2. *Altre autorizzazioni* → finestre pop-up durante l'esecuzione in background → *Consenti sempre*.
+3. *Risparmio energetico* → *Nessuna restrizione*.
+
 ## Build
 
 ```

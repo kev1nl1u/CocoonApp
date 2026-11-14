@@ -20,10 +20,19 @@
 
     <string name="perm_a11y_title">Turn on app detection</string>
     <string name="perm_a11y_body">Accessibility → Cocoon. Nothing leaves your phone.</string>
+    <string name="perm_a11y_body_hyperos">Accessibility → Downloaded apps → Cocoon. Nothing leaves your phone.</string>
     <string name="perm_a11y_restricted">Blocked? Open App info → ⋮ → Allow restricted settings</string>
     <string name="perm_notif_title">Turn on notifications</string>
     <string name="perm_notif_body">For the heads-up before time runs out</string>
     <string name="enable">Turn on</string>
+
+    <string name="hyperos_title">HyperOS setup</string>
+    <string name="hyperos_body">In App info, so blocks keep working:</string>
+    <string name="hyperos_autostart">Autostart → on</string>
+    <string name="hyperos_popup">Other permissions → Display pop-up windows while running in the background → Always allow</string>
+    <string name="hyperos_battery">Battery saver → No restrictions</string>
+    <string name="hyperos_open">App info</string>
+    <string name="done">Done</string>
 
     <string name="usage">%1$s / %2$s</string>
     <string name="status_off">Off</string>

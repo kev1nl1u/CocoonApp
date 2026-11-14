@@ -20,10 +20,16 @@ object Store {
     private val _mode = MutableStateFlow(Mode.STANDARD)
     val mode: StateFlow<Mode> = _mode
 
+    private val _hyperOsDone = MutableStateFlow(false)
+
+    /** The user has been through the HyperOS setup card. */
+    val hyperOsDone: StateFlow<Boolean> = _hyperOsDone
+
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         prefs = context.getSharedPreferences("cocoon", Context.MODE_PRIVATE)
         _mode.value = runCatching { Mode.valueOf(prefs.getString(KEY_MODE, null).orEmpty()) }.getOrDefault(Mode.STANDARD)
+        _hyperOsDone.value = prefs.getBoolean(KEY_HYPEROS_DONE, false)
         _rules.value = runCatching {
             val array = JSONArray(prefs.getString(KEY_RULES, "[]"))
             List(array.length()) { ruleFrom(array.getJSONObject(it)) }
@@ -66,6 +72,11 @@ object Store {
     fun setMode(mode: Mode) {
         _mode.value = mode
         prefs.edit().putString(KEY_MODE, mode.name).apply()
+    }
+
+    fun setHyperOsDone() {
+        _hyperOsDone.value = true
+        prefs.edit().putBoolean(KEY_HYPEROS_DONE, true).apply()
     }
 
     fun flush() {
@@ -129,4 +140,5 @@ object Store {
     private const val KEY_RULES = "rules"
     private const val KEY_STATES = "states"
     private const val KEY_MODE = "mode"
+    private const val KEY_HYPEROS_DONE = "hyperOsDone"
 }

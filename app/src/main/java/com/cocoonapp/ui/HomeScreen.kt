@@ -45,6 +45,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.cocoonapp.R
+import com.cocoonapp.core.Device
 import com.cocoonapp.core.Gate
 import com.cocoonapp.core.GuardService
 import com.cocoonapp.core.Logic
@@ -78,6 +80,7 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
     val rules by Store.rules.collectAsStateWithLifecycle()
     val states by Store.states.collectAsStateWithLifecycle()
     val mode by Store.mode.collectAsStateWithLifecycle()
+    val hyperOsDone by Store.hyperOsDone.collectAsStateWithLifecycle()
     val now by rememberNow()
     val zone = ZoneId.systemDefault()
     val gates = rules.associate { it.pkg to Logic.status(it, states[it.pkg] ?: AppState(), now, zone) }
@@ -121,7 +124,9 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
             if (!detectionOn) item(key = "detection") {
                 PermissionCard(
                     title = stringResource(R.string.perm_a11y_title),
-                    body = stringResource(R.string.perm_a11y_body),
+                    body = stringResource(
+                        if (Device.isHyperOs) R.string.perm_a11y_body_hyperos else R.string.perm_a11y_body,
+                    ),
                     // Sideloaded apps hit "restricted settings" from Android 13 on.
                     hint = if (Build.VERSION.SDK_INT >= 33) stringResource(R.string.perm_a11y_restricted) else null,
                     onHintClick = { openAppInfo(context) },
@@ -137,6 +142,9 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
                         else openNotificationSettings(context)
                     },
                 )
+            }
+            if (Device.isHyperOs && !hyperOsDone) item(key = "hyperos") {
+                HyperOsCard(onOpen = { openAppInfo(context) }, onDone = Store::setHyperOsDone)
             }
             item(key = "mode") {
                 ModeSwitch(mode, locked = mode == Mode.MAX && gates.values.any { it.isBlocked })
@@ -189,6 +197,34 @@ private fun PermissionCard(
             }
             Spacer(Modifier.width(12.dp))
             Button(onClick = onClick) { Text(stringResource(R.string.enable)) }
+        }
+    }
+}
+
+/** HyperOS stops background apps and hides their screens unless these switches are set by hand. */
+@Composable
+private fun HyperOsCard(onOpen: () -> Unit, onDone: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        ),
+    ) {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)) {
+            Text(stringResource(R.string.hyperos_title), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.hyperos_body), style = MaterialTheme.typography.bodySmall)
+            Spacer(Modifier.height(8.dp))
+            val steps = listOf(R.string.hyperos_autostart, R.string.hyperos_popup, R.string.hyperos_battery)
+            steps.forEachIndexed { index, step ->
+                Text("${index + 1}. ${stringResource(step)}", style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(Modifier.height(4.dp))
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDone) { Text(stringResource(R.string.done)) }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = onOpen) { Text(stringResource(R.string.hyperos_open)) }
+            }
         }
     }
 }
@@ -311,7 +347,7 @@ private fun isGuardEnabled(context: Context): Boolean {
 private fun notificationsEnabled(context: Context): Boolean =
     context.getSystemService(NotificationManager::class.java).areNotificationsEnabled()
 
-/** The system's "allow restricted settings" switch for sideloaded apps lives on this page. */
+/** Home of the "allow restricted settings" switch for sideloaded apps and of the HyperOS toggles. */
 private fun openAppInfo(context: Context) {
     context.startActivity(
         Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null)),
