@@ -29,7 +29,6 @@ object Logic {
     const val BYPASS_MINUTES = 5
     private const val BYPASS_WAIT_BASE = 30
     private const val BYPASS_WAIT_MAX = 300
-    private val SESSION_STEPS = listOf(1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240)
 
     private fun minuteOfDay(t: ZonedDateTime) = t.hour * 60 + t.minute
 
@@ -134,13 +133,7 @@ object Logic {
         (BYPASS_WAIT_BASE.toLong() shl st.bypassCount.coerceIn(0, 10)).coerceAtMost(BYPASS_WAIT_MAX.toLong()).toInt()
 
     /** Longest session (minutes) the remaining budget allows. */
-    private fun maxSession(budgetLeftMs: Long): Int = ((budgetLeftMs + MINUTE - 1) / MINUTE).toInt().coerceAtLeast(1)
-
-    /** Session lengths (minutes) offered for the remaining budget; the last one uses all of it. */
-    fun sessionChoices(budgetLeftMs: Long): List<Int> {
-        val max = maxSession(budgetLeftMs)
-        return SESSION_STEPS.filter { it < max } + max
-    }
+    fun maxSession(budgetLeftMs: Long): Int = ((budgetLeftMs + MINUTE - 1) / MINUTE).toInt().coerceAtLeast(1)
 
     /** Length (minutes) of the session a rule with a fixed session gets, cut to the budget left; null = the user picks. */
     fun fixedSession(rule: Rule, budgetLeftMs: Long): Int? =

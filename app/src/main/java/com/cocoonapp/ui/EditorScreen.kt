@@ -55,10 +55,6 @@ import com.cocoonapp.data.Rule
 import com.cocoonapp.data.Store
 import java.time.ZoneId
 
-private val MAX_VALUES = listOf(5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240, 300, 360, 480)
-private val SESSION_VALUES = listOf(1, 2, 3, 5, 10, 15, 20, 30, 45, 60, 90, 120)
-private val COOLDOWN_VALUES = listOf(0, 1, 2, 5, 10, 15, 20, 30, 45, 60, 90, 120, 180, 240)
-private val WARN_VALUES = listOf(1, 2, 3, 5, 10, 15)
 
 @Composable
 fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
@@ -153,7 +149,6 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
                     minutesText(rule.maxMinutes),
                 ),
                 minutes = rule.maxMinutes,
-                presets = MAX_VALUES,
                 min = 1,
                 enabled = editable,
                 onChange = { rule = rule.copy(maxMinutes = it) },
@@ -163,7 +158,6 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
                 title = stringResource(R.string.session),
                 value = minutesText(rule.sessionMinutes),
                 minutes = rule.sessionMinutes,
-                presets = SESSION_VALUES,
                 min = 1,
                 enabled = editable,
                 onChange = { rule = rule.copy(sessionMinutes = it) },
@@ -176,7 +170,6 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
                 title = stringResource(R.string.cooldown),
                 value = if (rule.cooldownMinutes == 0) stringResource(R.string.none) else minutesText(rule.cooldownMinutes),
                 minutes = rule.cooldownMinutes,
-                presets = COOLDOWN_VALUES,
                 min = 0,
                 enabled = editable,
                 onChange = { rule = rule.copy(cooldownMinutes = it) },
@@ -226,7 +219,6 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
                 title = stringResource(R.string.warn),
                 value = minutesText(rule.warnMinutes),
                 minutes = rule.warnMinutes,
-                presets = WARN_VALUES,
                 min = 1,
                 enabled = editable,
                 onChange = { rule = rule.copy(warnMinutes = it) },
@@ -237,16 +229,12 @@ fun EditorScreen(initial: Rule, isNew: Boolean, onDone: () -> Unit) {
     }
 }
 
-/**
- * Duration setting: the slider snaps to [presets], tapping the value types an exact one.
- * With a switch, [offValue] is what shows while it is off.
- */
+/** Duration setting: tapping the value types a new one. With a switch, [offValue] shows while it is off. */
 @Composable
 private fun DurationSection(
     title: String,
     value: String,
     minutes: Int,
-    presets: List<Int>,
     min: Int,
     enabled: Boolean,
     onChange: (Int) -> Unit,
@@ -264,9 +252,7 @@ private fun DurationSection(
         checked = checked,
         onCheckedChange = onCheckedChange,
         enabled = enabled,
-    ) {
-        if (on) StepSlider(presets, minutes, onChange, enabled = enabled)
-    }
+    )
     if (typing) {
         TimeDialog(
             minutes = minutes,
@@ -290,7 +276,7 @@ private fun Section(
     checked: Boolean? = null,
     onCheckedChange: (Boolean) -> Unit = {},
     enabled: Boolean = true,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.() -> Unit = {},
 ) {
     Card(shape = RoundedCornerShape(20.dp)) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {

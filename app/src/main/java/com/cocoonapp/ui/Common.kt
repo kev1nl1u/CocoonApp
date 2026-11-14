@@ -10,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimeInput
@@ -32,7 +31,6 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
 import java.util.Locale
-import kotlin.math.roundToInt
 
 /** Wall clock that advances once per second. */
 @Composable
@@ -85,26 +83,6 @@ fun AppIcon(pkg: String, size: Dp, modifier: Modifier = Modifier) {
                 .background(MaterialTheme.colorScheme.surfaceVariant),
         )
     }
-}
-
-/** Slider that snaps to the entries of [values]. */
-@Composable
-fun StepSlider(
-    values: List<Int>,
-    value: Int,
-    onValueChange: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-) {
-    val index = values.indexOfLast { it <= value }.coerceAtLeast(0)
-    Slider(
-        value = index.toFloat(),
-        onValueChange = { onValueChange(values[it.roundToInt().coerceIn(values.indices)]) },
-        modifier = modifier,
-        enabled = enabled,
-        valueRange = 0f..values.lastIndex.toFloat(),
-        steps = (values.size - 2).coerceAtLeast(0),
-    )
 }
 
 /** Types an exact hh:mm, a time of day or a duration. The result is brought into [range]. */

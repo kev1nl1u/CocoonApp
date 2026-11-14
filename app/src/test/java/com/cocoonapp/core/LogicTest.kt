@@ -174,10 +174,10 @@ class LogicTest {
     }
 
     @Test
-    fun sessionChoicesEndWithWholeBudget() {
-        assertEquals(listOf(1, 2, 3, 5, 10, 15, 20, 30, 45, 60), Logic.sessionChoices(60 * min))
-        assertEquals(listOf(1, 2, 3, 5, 7), Logic.sessionChoices(7 * min - 20_000))
-        assertEquals(listOf(1), Logic.sessionChoices(30_000))
+    fun longestSessionUsesTheWholeBudget() {
+        assertEquals(60, Logic.maxSession(60 * min))
+        assertEquals(7, Logic.maxSession(7 * min - 20_000))
+        assertEquals(1, Logic.maxSession(30_000))
     }
 
     @Test

@@ -171,10 +171,10 @@ private fun GateScreen(pkg: String, onOpen: () -> Unit, onExit: () -> Unit) {
 
 @Composable
 private fun ColumnScope.PickContent(rule: Rule, budgetLeftMs: Long, onStart: (Int) -> Unit, onExit: () -> Unit) {
+    val max = Logic.maxSession(budgetLeftMs)
     val fixed = Logic.fixedSession(rule, budgetLeftMs)
-    val choices = remember(budgetLeftMs, fixed) { fixed?.let { listOf(it) } ?: Logic.sessionChoices(budgetLeftMs) }
-    var picked by remember { mutableIntStateOf(choices.lastOrNull { it <= DEFAULT_SESSION_MINUTES } ?: choices.first()) }
-    val minutes = picked.coerceAtMost(choices.last())
+    var picked by remember { mutableIntStateOf(DEFAULT_SESSION_MINUTES) }
+    val minutes = fixed ?: picked.coerceAtMost(max)
     var typing by remember { mutableStateOf(false) }
 
     Text(
@@ -182,10 +182,10 @@ private fun ColumnScope.PickContent(rule: Rule, budgetLeftMs: Long, onStart: (In
         style = MaterialTheme.typography.headlineSmall,
     )
     Spacer(Modifier.height(12.dp))
-    // The slider offers round lengths; tapping the value types an exact one.
+    // Tapping the value types another length.
     Surface(
         onClick = { typing = true },
-        enabled = fixed == null && choices.last() > 1,
+        enabled = fixed == null && max > 1,
         shape = RoundedCornerShape(24.dp),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
     ) {
@@ -196,9 +196,6 @@ private fun ColumnScope.PickContent(rule: Rule, budgetLeftMs: Long, onStart: (In
             modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
         )
     }
-    if (choices.size > 1) {
-        StepSlider(choices, minutes, { picked = it }, Modifier.padding(top = 20.dp))
-    }
     if (typing) {
         TimeDialog(
             minutes = minutes,
@@ -208,7 +205,7 @@ private fun ColumnScope.PickContent(rule: Rule, budgetLeftMs: Long, onStart: (In
             },
             onDismiss = { typing = false },
             title = stringResource(R.string.gate_question),
-            range = 1..choices.last(),
+            range = 1..max,
         )
     }
     Spacer(Modifier.height(12.dp))
