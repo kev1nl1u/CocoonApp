@@ -34,7 +34,10 @@
     <string name="hyperos_autostart">Autostart → on</string>
     <string name="hyperos_popup">Other permissions → Display pop-up windows while running in the background → Always allow</string>
     <string name="hyperos_battery">Battery saver → No restrictions</string>
+    <string name="hyperos_recents">Recents → long-press Cocoon → lock</string>
     <string name="hyperos_open">App info</string>
+    <string name="crash_title">Cocoon crashed</string>
+    <string name="copy">Copy report</string>
     <string name="done">Done</string>
 
     <string name="usage">%1$s / %2$s</string>

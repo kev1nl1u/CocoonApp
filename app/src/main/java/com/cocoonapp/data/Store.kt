@@ -25,11 +25,17 @@ object Store {
     /** The user has been through the HyperOS setup card. */
     val hyperOsDone: StateFlow<Boolean> = _hyperOsDone
 
+    private val _crash = MutableStateFlow<String?>(null)
+
+    /** Report of the last crash, kept until the user has seen it. */
+    val crash: StateFlow<String?> = _crash
+
     fun init(context: Context) {
         if (::prefs.isInitialized) return
         prefs = context.getSharedPreferences("cocoon", Context.MODE_PRIVATE)
         _mode.value = runCatching { Mode.valueOf(prefs.getString(KEY_MODE, null).orEmpty()) }.getOrDefault(Mode.STANDARD)
         _hyperOsDone.value = prefs.getBoolean(KEY_HYPEROS_DONE, false)
+        _crash.value = prefs.getString(KEY_CRASH, null)
         _rules.value = runCatching {
             val array = JSONArray(prefs.getString(KEY_RULES, "[]"))
             List(array.length()) { ruleFrom(array.getJSONObject(it)) }
@@ -77,6 +83,16 @@ object Store {
     fun setHyperOsDone() {
         _hyperOsDone.value = true
         prefs.edit().putBoolean(KEY_HYPEROS_DONE, true).apply()
+    }
+
+    /** Runs while the process is dying, so the write is synchronous. */
+    fun saveCrash(report: String) {
+        prefs.edit().putString(KEY_CRASH, report).commit()
+    }
+
+    fun clearCrash() {
+        _crash.value = null
+        prefs.edit().remove(KEY_CRASH).apply()
     }
 
     fun flush() {
@@ -145,4 +161,5 @@ object Store {
     private const val KEY_STATES = "states"
     private const val KEY_MODE = "mode"
     private const val KEY_HYPEROS_DONE = "hyperOsDone"
+    private const val KEY_CRASH = "crash"
 }

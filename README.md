@@ -26,6 +26,10 @@ Cocoon riconosce HyperOS e mostra questi passi in home. In Info app di Cocoon:
 1. *Avvio automatico* → attivo.
 2. *Altre autorizzazioni* → finestre pop-up durante l'esecuzione in background → *Consenti sempre*.
 3. *Risparmio energetico* → *Nessuna restrizione*.
+4. Recenti → tieni premuto Cocoon → lucchetto.
+
+Senza, HyperOS chiude Cocoon (a ogni aggiornamento o pulizia delle app recenti) e in Accessibilità compare
+*Questo servizio non funziona correttamente*: disattiva e riattiva Cocoon.
 
 ## Build
 

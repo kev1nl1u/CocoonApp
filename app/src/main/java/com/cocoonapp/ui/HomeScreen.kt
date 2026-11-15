@@ -56,8 +56,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -83,6 +85,7 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
     val states by Store.states.collectAsStateWithLifecycle()
     val mode by Store.mode.collectAsStateWithLifecycle()
     val hyperOsDone by Store.hyperOsDone.collectAsStateWithLifecycle()
+    val crash by Store.crash.collectAsStateWithLifecycle()
     val now by rememberNow()
     val zone = ZoneId.systemDefault()
     val gates = rules.associate { it.pkg to Logic.status(it, states[it.pkg] ?: AppState(), now, zone) }
@@ -133,6 +136,8 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
             ),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            val report = crash
+            if (report != null) item(key = "crash") { CrashCard(report, onDone = Store::clearCrash) }
             if (!detectionOn) item(key = "detection") {
                 PermissionCard(
                     title = stringResource(R.string.perm_a11y_title),
@@ -163,7 +168,8 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
                     },
                 )
             }
-            if (Device.isHyperOs && !hyperOsDone) item(key = "hyperos") {
+            // A stalled service means the setup is not in place, whatever was ticked off before.
+            if (Device.isHyperOs && (!hyperOsDone || stalled)) item(key = "hyperos") {
                 HyperOsCard(onOpen = { openAppInfo(context) }, onDone = Store::setHyperOsDone)
             }
             item(key = "mode") {
@@ -236,7 +242,12 @@ private fun HyperOsCard(onOpen: () -> Unit, onDone: () -> Unit) {
             Text(stringResource(R.string.hyperos_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.hyperos_body), style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
-            val steps = listOf(R.string.hyperos_autostart, R.string.hyperos_popup, R.string.hyperos_battery)
+            val steps = listOf(
+                R.string.hyperos_autostart,
+                R.string.hyperos_popup,
+                R.string.hyperos_battery,
+                R.string.hyperos_recents,
+            )
             steps.forEachIndexed { index, step ->
                 Text("${index + 1}. ${stringResource(step)}", style = MaterialTheme.typography.bodyMedium)
             }
@@ -245,6 +256,35 @@ private fun HyperOsCard(onOpen: () -> Unit, onDone: () -> Unit) {
                 TextButton(onClick = onDone) { Text(stringResource(R.string.done)) }
                 Spacer(Modifier.width(8.dp))
                 Button(onClick = onOpen) { Text(stringResource(R.string.hyperos_open)) }
+            }
+        }
+    }
+}
+
+/** Shown at the first launch after a crash; the report is meant to be pasted into a bug report. */
+@Composable
+private fun CrashCard(report: String, onDone: () -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    Card(
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+        ),
+    ) {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp)) {
+            Text(stringResource(R.string.crash_title), style = MaterialTheme.typography.titleMedium)
+            Text(
+                // First line is the build and device, the second one names the error.
+                report.lineSequence().drop(1).firstOrNull().orEmpty(),
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDone) { Text(stringResource(R.string.done)) }
+                Spacer(Modifier.width(8.dp))
+                Button(onClick = { clipboard.setText(AnnotatedString(report)) }) { Text(stringResource(R.string.copy)) }
             }
         }
     }
