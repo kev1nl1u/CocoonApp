@@ -28,12 +28,13 @@
     <string name="perm_notif_body">Per il tempo rimasto e l\'avviso prima che scada</string>
     <string name="enable">Attiva</string>
 
+    <string name="autostart_title">Attiva l\'avvio automatico</string>
+    <string name="autostart_body">Senza, HyperOS ferma i limiti per sempre se togli Cocoon dalle app recenti</string>
     <string name="hyperos_title">Configura HyperOS</string>
     <string name="hyperos_body">In Info app, per far funzionare i blocchi:</string>
     <string name="hyperos_autostart">Avvio automatico → attivo</string>
     <string name="hyperos_popup">Altre autorizzazioni → Finestre pop-up in background → Consenti sempre</string>
     <string name="hyperos_battery">Risparmio energetico → Nessuna restrizione</string>
-    <string name="hyperos_recents">Recenti → tieni premuto Cocoon → lucchetto</string>
     <string name="hyperos_open">Info app</string>
     <string name="crash_title">Cocoon si è chiuso per un errore</string>
     <string name="copy">Copia report</string>

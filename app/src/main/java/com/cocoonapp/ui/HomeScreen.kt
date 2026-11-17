@@ -92,9 +92,11 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
 
     var detectionOn by remember { mutableStateOf(isGuardEnabled(context)) }
     var notificationsOn by remember { mutableStateOf(notificationsEnabled(context)) }
+    var autostart by remember { mutableStateOf(Device.autostartAllowed(context)) }
     LifecycleResumeEffect(Unit) {
         detectionOn = isGuardEnabled(context)
         notificationsOn = notificationsEnabled(context)
+        autostart = Device.autostartAllowed(context)
         onPauseOrDispose { }
     }
     val running by GuardService.running.collectAsStateWithLifecycle()
@@ -168,9 +170,22 @@ fun HomeScreen(onAdd: () -> Unit, onEdit: (Rule) -> Unit) {
                     },
                 )
             }
+            // Without it the service dies for good the first time the app is swiped out of recents.
+            if (autostart == false) item(key = "autostart") {
+                PermissionCard(
+                    title = stringResource(R.string.autostart_title),
+                    body = stringResource(R.string.autostart_body),
+                    onClick = { if (!Device.openAutostart(context)) openAppInfo(context) },
+                )
+            }
             // A stalled service means the setup is not in place, whatever was ticked off before.
             if (Device.isHyperOs && (!hyperOsDone || stalled)) item(key = "hyperos") {
-                HyperOsCard(onOpen = { openAppInfo(context) }, onDone = Store::setHyperOsDone)
+                HyperOsCard(
+                    // Listed by hand only when the switch cannot be read; otherwise it has its own card.
+                    autostartStep = autostart == null,
+                    onOpen = { openAppInfo(context) },
+                    onDone = Store::setHyperOsDone,
+                )
             }
             item(key = "mode") {
                 ModeSwitch(mode, locked = mode == Mode.MAX && gates.values.any { it.isBlocked })
@@ -230,7 +245,7 @@ private fun PermissionCard(
 
 /** HyperOS stops background apps and hides their screens unless these switches are set by hand. */
 @Composable
-private fun HyperOsCard(onOpen: () -> Unit, onDone: () -> Unit) {
+private fun HyperOsCard(autostartStep: Boolean, onOpen: () -> Unit, onDone: () -> Unit) {
     Card(
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -242,11 +257,10 @@ private fun HyperOsCard(onOpen: () -> Unit, onDone: () -> Unit) {
             Text(stringResource(R.string.hyperos_title), style = MaterialTheme.typography.titleMedium)
             Text(stringResource(R.string.hyperos_body), style = MaterialTheme.typography.bodySmall)
             Spacer(Modifier.height(8.dp))
-            val steps = listOf(
-                R.string.hyperos_autostart,
+            val steps = listOfNotNull(
+                R.string.hyperos_autostart.takeIf { autostartStep },
                 R.string.hyperos_popup,
                 R.string.hyperos_battery,
-                R.string.hyperos_recents,
             )
             steps.forEachIndexed { index, step ->
                 Text("${index + 1}. ${stringResource(step)}", style = MaterialTheme.typography.bodyMedium)
