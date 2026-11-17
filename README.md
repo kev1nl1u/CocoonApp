@@ -21,15 +21,19 @@ Nessun account, nessuna rete: tutto resta sul telefono.
 
 ### Xiaomi HyperOS
 
-Cocoon riconosce HyperOS e mostra questi passi in home. In Info app di Cocoon:
+Cocoon riconosce HyperOS e mostra questi passi in home.
 
-1. *Avvio automatico* → attivo.
-2. *Altre autorizzazioni* → finestre pop-up durante l'esecuzione in background → *Consenti sempre*.
-3. *Risparmio energetico* → *Nessuna restrizione*.
-4. Recenti → tieni premuto Cocoon → lucchetto.
+1. **Avvio automatico** → attivo. È il passo indispensabile: la card *Attiva l'avvio automatico* resta
+   finché è spento e apre direttamente la schermata (Sicurezza → Avvio automatico → Cocoon).
+2. In Info app di Cocoon: *Altre autorizzazioni* → finestre pop-up durante l'esecuzione in background → *Consenti sempre*.
+3. In Info app di Cocoon: *Risparmio energetico* → *Nessuna restrizione*.
 
-Senza, HyperOS chiude Cocoon (a ogni aggiornamento o pulizia delle app recenti) e in Accessibilità compare
-*Questo servizio non funziona correttamente*: disattiva e riattiva Cocoon.
+Quando togli Cocoon dalle app recenti (swipe o pulisci tutto), HyperOS chiude l'intero processo, servizio di
+accessibilità compreso; il lucchetto sulla card non lo evita. Con l'avvio automatico attivo il sistema riavvia il
+servizio in circa un secondo. Senza, il servizio resta fermo e in Accessibilità compare
+*Questo servizio non funziona correttamente*: attiva l'avvio automatico, poi disattiva e riattiva Cocoon in Accessibilità.
+
+Dopo un aggiornamento HyperOS può spegnere Cocoon in Accessibilità: la card *Attiva il rilevamento app* lo segnala.
 
 ## Build
 
